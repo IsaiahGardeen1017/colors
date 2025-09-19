@@ -29,10 +29,8 @@ export async function drawHslWheel(
   filename = "hsl_wheel.png",
   size = 600,
 ) {
-  const swatchHeight = Math.max(50, size / 6);
-  const totalHeight = size + swatchHeight;
-
-  const canvas = createCanvas(size, totalHeight);
+  const stripHeight = Math.max(40, size / 10);
+  const canvas = createCanvas(size, size + stripHeight);
   const ctx = canvas.getContext("2d");
 
   const cx = size / 2;
@@ -70,7 +68,7 @@ export async function drawHslWheel(
 
   // --- Draw markers ---
   const baseMarkerRadius = Math.max(12, size / 60);
-  const markerRadius = baseMarkerRadius * 0.75; // ¾ size
+  const markerRadius = baseMarkerRadius * 0.75;
   const strokeWidth = Math.max(2, size / 300);
 
   for (const col of colors) {
@@ -88,28 +86,56 @@ export async function drawHslWheel(
     ctx.arc(mx, my, markerRadius, 0, Math.PI * 2);
     ctx.fillStyle = `hsl(${h}, ${s * 100}%, ${l * 100}%)`;
     ctx.fill();
-
     ctx.lineWidth = strokeWidth;
     ctx.strokeStyle = "black";
     ctx.stroke();
   }
 
-  // --- Draw swatch strip ---
-  if (colors.length > 0) {
-    const swatchWidth = size / colors.length;
-    for (let i = 0; i < colors.length; i++) {
-      const col = colors[i];
-      if (col.mode !== "hsl") continue;
-      const { h, s, l } = col;
-      const x = i * swatchWidth;
-      const y = size;
-      ctx.fillStyle = `hsl(${h}, ${s * 100}%, ${l * 100}%)`;
-      ctx.fillRect(x, y, swatchWidth, swatchHeight);
+  // --- Draw ticks inside wheel ---
+  const tickLen = Math.max(16, size / 25); // twice as long
+  const tickWidth = Math.max(6, size / 100); // twice as thick
 
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = "black";
-      ctx.strokeRect(x, y, swatchWidth, swatchHeight);
-    }
+  for (const col of colors) {
+    if (col.mode !== "hsl") continue;
+    const h = col.h;
+    const s = Math.max(0, Math.min(1, col.s));
+    const l = Math.max(0, Math.min(1, col.l));
+
+    const angle = ((h % 360) / 360) * Math.PI * 2;
+    const xOuter = cx + Math.cos(angle) * radius;
+    const yOuter = cy + Math.sin(angle) * radius;
+    const xInner = cx + Math.cos(angle) * (radius - tickLen);
+    const yInner = cy + Math.sin(angle) * (radius - tickLen);
+
+    // black outline
+    ctx.beginPath();
+    ctx.moveTo(xInner, yInner);
+    ctx.lineTo(xOuter, yOuter);
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = tickWidth + 2;
+    ctx.stroke();
+
+    // colored tick on top
+    ctx.beginPath();
+    ctx.moveTo(xInner, yInner);
+    ctx.lineTo(xOuter, yOuter);
+    ctx.strokeStyle = `hsl(${h}, ${s * 100}%, ${l * 100}%)`;
+    ctx.lineWidth = tickWidth;
+    ctx.stroke();
+  }
+
+  // --- Draw color strip ---
+  const rectWidth = size / colors.length;
+  const stripY = size;
+  for (let i = 0; i < colors.length; i++) {
+    const col = colors[i];
+    if (col.mode !== "hsl") continue;
+    const { h, s, l } = col;
+    ctx.fillStyle = `hsl(${h}, ${s * 100}%, ${l * 100}%)`;
+    ctx.fillRect(i * rectWidth, stripY, rectWidth, stripHeight);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "black";
+    ctx.strokeRect(i * rectWidth, stripY, rectWidth, stripHeight);
   }
 
   const png = canvas.encode("png");
@@ -117,14 +143,13 @@ export async function drawHslWheel(
   console.log(`Saved ${filename}`);
 }
 
-// Example direct run
+// Example run
 if (import.meta.main) {
   const example: HSLColor[] = [
-    { mode: "hsl", h: 100, s: 0.5, l: 0.5 },
-    { mode: "hsl", h: 220, s: 0.75, l: 0.4 },
-    { mode: "hsl", h: 300, s: 0.25, l: 0.75 },
-    { mode: "hsl", h: 45, s: 0.8, l: 0.6 },
-    { mode: "hsl", h: 10, s: 0.9, l: 0.5 },
+    { mode: "hsl", h: 0, s: 0.5, l: 0.5 },
+    { mode: "hsl", h: 120, s: 0.7, l: 0.5 },
+    { mode: "hsl", h: 240, s: 0.6, l: 0.4 },
+    { mode: "hsl", h: 300, s: 0.8, l: 0.6 },
   ];
-  await drawHslWheel(example, "wheel_with_swatches.png", 600);
+  await drawHslWheel(example, "wheel_with_big_ticks.png", 600);
 }

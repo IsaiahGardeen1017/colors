@@ -4,16 +4,16 @@ import { randHsl } from './random.ts';
 
 const copied = `
 
-8CB369
-92, 33, 56
-F4E285
-50, 83, 74
-F4A259
-28, 88, 65
-5B8E7D
-160, 22, 46
-BC4B51
-357, 46, 52
+320A28
+315, 67, 12
+511730
+334, 56, 20
+8E443D
+5, 40, 40
+CB9173
+20, 46, 62
+EOD68A
+53, 58, 71
 
 `;
 
@@ -37,6 +37,6 @@ const hsls: hsl[] = hslsLines.map((l) => {
     }
 })
 
-
+filename = 'Wheel'
 
 drawHslWheel(hsls, `output/${filename}.png`)

@@ -1,6 +1,6 @@
 import { rgb, hsl, formatRgb, converter } from 'culori';
-import { block, colString, printCol } from './textfuncs.ts';
-import { randHsl, randRgb } from './random.ts';
+import { block, colString, printCol } from '../textfuncs.ts';
+import { randHsl, randRgb } from '../random.ts';
 
 const blockSize = 2;
 const numDemos = 5;

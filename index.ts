@@ -1,7 +1,7 @@
-import { randHsl, randHslOptions, randRgb } from './random.ts';
-import { Printer } from './printer.ts';
-import { color, palletteBuilder, ToneStrategies } from './palleteFuncs.ts';
-import { printColorPalletteBlock } from './textfuncs.ts';
+import { randHsl, randHslOptions, randRgb } from './src/random.ts';
+import { Printer } from './src/printer.ts';
+import { color, palletteBuilder, ToneStrategies } from './src/palleteFuncs.ts';
+import { printColorPalletteBlock } from './src/textfuncs.ts';
 import { rgb } from 'culori';
 
 const numDemos = 1;

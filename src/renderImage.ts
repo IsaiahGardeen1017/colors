@@ -76,6 +76,10 @@ export function sampleFirst(y0: number, x0: number, xSize: number, ysize: number
 }
 
 
+export function getListOfValidColors(pixels:Buffer, channels: number): color[]{
+    return [];
+}
+
 export function quantizeOnHSLFuncBuilder(hueSlices: number, satSlices: number, litSlices: number, sampleMode: 'average' | 'first'): ColorStrategy {
     return (y0: number, x0: number, xSize: number, ysize: number, imageWidth: number, pixels: Buffer, channels: number) => {
         
@@ -141,9 +145,6 @@ export async function renderImage(imgBytes: Uint8Array, h: number, w: number, co
     const heightBound_h_max = h;
     const heightBound_w_max = Math.floor(h * aspectRatio);
 
-    let numArrx: number[] = [];
-    let numArry: number[] = [];
-
     if (widthBound_h_max < h) {
         hMax = widthBound_h_max;
         wMax = widthBound_w_max;
@@ -180,3 +181,8 @@ export async function renderImage(imgBytes: Uint8Array, h: number, w: number, co
 
     return strs;
 };
+
+
+function getPixelFromBuffer(buffer: Buffer, x: Number, y: number, channels = 3){
+
+}

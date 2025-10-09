@@ -7,34 +7,22 @@ import { color, colorToHsl, colorToRgb, rgbToHsl } from './palleteFuncs.ts';
 import { randHsl } from './random.ts';
 import { Buffer } from "node:buffer";
 
-export type ColorStrategy = (y0: number, x0: number, xSize: number, ysize: number, imageWidth: number, pixels: Buffer, channels: number) => color;
+export type ColorStrategy = (y0: number, x0: number, ySize: number, xSize: number, pixels: color[][]) => color;
 
 
-export function averageAll(y0: number, x0: number, xSize: number, ysize: number, imageWidth: number, pixels: Buffer, channels: number): color {
+export function averageAll(y0: number, x0: number, ySize: number, xSize: number, pixels: color[][]): color {
     let rAvg = 0;
     let gAvg = 0;
     let bAvg = 0;
     let tot = 0;
 
-    for (let i = 0; i < ysize; i++) {
-        let pixelIndexStart = (((y0 + i) * imageWidth) + x0) * channels;
-        let pixelIndexEnd = (((y0 + i) * imageWidth) + (x0 + xSize)) * channels;
-        for (let j = pixelIndexStart; j < pixelIndexEnd; j += channels) {
-            let r, g, b, a;
-            if (channels < 3) {
-                throw Error('Less than three channel in da image');
-            } else {
-                r = pixels[j]; // Red
-                g = pixels[j + 1]; // Green
-                b = pixels[j + 2]; // Blue
-            }
-            if (channels === 4) {
-                a = pixels[j + 3]; // Alpha (transparency)
-            }
+    for (let y = y0; y < ySize; y++) {
+        for (let x = x0; x < xSize; x++) {
+            const c = colorToRgb(pixels[y][x]);
             tot++;
-            rAvg += r;
-            gAvg += g;
-            bAvg += b;
+            rAvg += c.r;
+            gAvg += c.g;
+            bAvg += c.b;
         }
     }
 
@@ -49,78 +37,23 @@ export function averageAll(y0: number, x0: number, xSize: number, ysize: number,
     return rgb;
 }
 
-export function sampleFirst(y0: number, x0: number, xSize: number, ysize: number, imageWidth: number, pixels: Buffer, channels: number): color {
+export function sampleFirst(y0: number, x0: number, ySize: number, xSize: number, pixels: color[][]): color {
 
-    const pixelIndex = (y0 * imageWidth + x0) * channels;
-    let r, g, b, a;
-    if (channels < 3) {
-        throw Error('Less than three channel in da image');
-    } else {
-        r = pixels[pixelIndex]; // Red
-        g = pixels[pixelIndex + 1]; // Green
-        b = pixels[pixelIndex + 2]; // Blue
-    }
-    if (channels === 4) {
-        a = pixels[pixelIndex + 3]; // Alpha (transparency)
-    }
-
-    const rgb: color = {
-        mode: 'rgb',
-        r: r / 255,
-        g: g / 255,
-        b: b / 255,
-    }
-
-
-    return rgb;
+    return pixels[y0][x0];
 }
 
 
-export function getListOfValidColors(pixels:Buffer, channels: number): color[]{
+export function getListOfValidColors(pixels: Buffer, channels: number): color[] {
     return [];
 }
 
 export function quantizeOnHSLFuncBuilder(hueSlices: number, satSlices: number, litSlices: number, sampleMode: 'average' | 'first'): ColorStrategy {
-    return (y0: number, x0: number, xSize: number, ysize: number, imageWidth: number, pixels: Buffer, channels: number) => {
-        
-        let avgRGB: color = randHsl();
-        if(sampleMode === 'average'){
-            avgRGB = averageAll(y0, x0, xSize, ysize, imageWidth, pixels, channels);
-        }else if(sampleMode === 'first'){
-            avgRGB = sampleFirst(y0, x0, xSize, ysize, imageWidth, pixels, channels);
+    
+        if (sampleMode === 'average') {
+            return averageAll;
+        } else if (sampleMode === 'first') {
+            return sampleFirst;
         }
-
-        let hsl = colorToHsl(avgRGB);
-
-        const hSliceWidth = 360 / hueSlices;
-        const newH = Math.floor(hsl.h / hSliceWidth) * hSliceWidth;
-        
-        let newS;
-        if(satSlices === 0){
-            newS = 0.5;
-        }else{
-            const sSliceWidth = 1.0 / satSlices;
-            newS = Math.floor(hsl.s / sSliceWidth) * sSliceWidth;
-        }
-        
-        let newL;
-        if(litSlices === 0){
-            newL = 0.5;
-        }else{
-            const lSliceWidth = 1.0 / litSlices;
-            newL = Math.floor(hsl.l / lSliceWidth) * lSliceWidth;
-
-        }
-        
-        
-        
-        return {
-            mode: 'hsl',
-            h: newH,
-            s: newS,
-            l: newL
-        }
-    }
 }
 
 export async function renderImage(imgBytes: Uint8Array, h: number, w: number, colorStrategy: ColorStrategy = sampleFirst, bonusArr?: color[]): Promise<string[]> {
@@ -162,20 +95,52 @@ export async function renderImage(imgBytes: Uint8Array, h: number, w: number, co
         .raw() // Get raw pixel data
         .toBuffer({ resolveWithObject: true });
 
+    const pixels: color[][] = [];
+
+    for (let i = 0; i < height; i++) {
+        const row: color[] = [];
+        for (let j = 0; j < width; j++) {
+            const pixelIndex = (i * width + j) * channels;
+            let r: number, g: number, b: number, a: number;
+            if (channels < 3) {
+                throw Error('Less than three channel in da image');
+            } else {
+                r = data[pixelIndex]; // Red
+                g = data[pixelIndex + 1]; // Green
+                b = data[pixelIndex + 2]; // Blue
+            }
+            if (channels === 4) {
+                a = data[pixelIndex + 3]; // Alpha (transparency)
+            }
+            const rgb: color = {
+                mode: 'rgb',
+                r: r / 255,
+                g: g / 255,
+                b: b / 255,
+            }
+            row.push(rgb);
+        }
+        pixels.push(row);
+    }
+
     for (let ih = 0; ih < hMax; ih++) {
         //each row
         let str = '';
         const dataPixelIdxY = Math.floor((height / hMax) * ih);
+
+
         for (let iw = 0; iw < wMax; iw++) {
             //each column in row
 
             const dataPixelIdxX = Math.floor((width / wMax) * iw);
-            const color = colorStrategy(dataPixelIdxY, dataPixelIdxX, pixelsPerChar_H, pixelsPerChar_W, width, data, channels);
+            const color = colorStrategy(dataPixelIdxY, dataPixelIdxX, pixelsPerChar_H, pixelsPerChar_W, pixels);
             const char = colString(block(1), colorToRgb(color));
 
 
             str += char;
         }
+
+
         strs.push(str);
     }
 
@@ -183,6 +148,6 @@ export async function renderImage(imgBytes: Uint8Array, h: number, w: number, co
 };
 
 
-function getPixelFromBuffer(buffer: Buffer, x: Number, y: number, channels = 3){
+function getPixelFromBuffer(buffer: Buffer, x: Number, y: number, channels = 3) {
 
 }

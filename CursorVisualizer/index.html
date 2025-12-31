@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Palette Visualizer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="main-layout">
+        <div class="palette-display" id="paletteDisplay">
+            <div class="palette-content">
+                <h2>Color Palette</h2>
+                <p>This is example text that will show the selected color as background with inverse text color.</p>
+                <div class="color-info">
+                    <div>HSL: <span id="hslValue">hsl(180, 50%, 50%)</span></div>
+                    <div>HEX: <span id="hexValue">#40bfbf</span></div>
+                </div>
+                
+                <div class="palette-blocks" id="paletteBlocks"></div>
+            </div>
+        </div>
+        
+        <div class="picker-panel">
+            <div class="color-wheel-container">
+                <canvas id="colorWheel" width="300" height="300"></canvas>
+            </div>
+            
+            <div class="controls">
+                <div class="slider-group">
+                    <label for="hueSlider">
+                        <span>Hue</span>
+                        <span id="hueValue">180</span>°
+                    </label>
+                    <input type="range" id="hueSlider" min="0" max="360" value="180" class="slider">
+                </div>
+                
+                <div class="slider-group">
+                    <label for="saturationSlider">
+                        <span>Saturation</span>
+                        <span id="saturationValue">50</span>%
+                    </label>
+                    <input type="range" id="saturationSlider" min="0" max="100" value="50" class="slider">
+                </div>
+                
+                <div class="slider-group">
+                    <label for="lightnessSlider">
+                        <span>Lightness</span>
+                        <span id="lightnessValue">50</span>%
+                    </label>
+                    <input type="range" id="lightnessSlider" min="0" max="100" value="50" class="slider">
+                </div>
+                
+                <div class="slider-group">
+                    <label for="splitsInput">
+                        <span>Palette Colors</span>
+                        <span id="splitsValue">3</span>
+                    </label>
+                    <div class="incrementer">
+                        <button id="splitsDecrement" class="increment-btn">−</button>
+                        <input type="number" id="splitsInput" min="0" value="5" class="increment-input">
+                        <button id="splitsIncrement" class="increment-btn">+</button>
+                    </div>
+                </div>
+                
+                <div class="slider-group">
+                    <label for="separationSlider">
+                        <span>Separation</span>
+                        <span id="separationValue">20</span>°
+                    </label>
+                    <input type="range" id="separationSlider" min="1" max="180" value="90" class="slider">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module" src="/app.ts"></script>
+</body>
+</html>
+

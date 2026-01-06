@@ -1,0 +1,5 @@
+Use comments only sparingly, in general comments are not wanted except for JS Doc style documentation above functions
+
+Remove unused code whenever possible, but verify that its not being used anywhere.
+
+Restrain from using dependancies when possible, I mostly hate dependancies.
